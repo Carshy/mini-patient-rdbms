@@ -1,0 +1,23 @@
+{
+  "name": "simple-rdbms-patient-management",
+  "version": "1.0.0",
+  "description": "A simple relational database management system with patient management demo",
+  "main": "rdbms/index.js",
+  "scripts": {
+    "repl": "node start-repl.js",
+    "demo": "node demo.js",
+    "start": "node start-repl.js"
+  },
+  "keywords": [
+    "rdbms",
+    "database",
+    "sql",
+    "patient-management",
+    "interview"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
