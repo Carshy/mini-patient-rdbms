@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Calendar, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { appointmentsAPI, patientsAPI, doctorsAPI } from '../services/api';
 
 function Appointments() {
@@ -20,6 +21,12 @@ function Appointments() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('modal') === 'add') setShowModal(true);
+  }, [location.search]);
 
   const fetchData = async () => {
     try {
@@ -136,86 +143,76 @@ function Appointments() {
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Patient
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Doctor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Reason
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {appointments.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                  No appointments found
-                </td>
-              </tr>
-            ) : (
-              appointments.map((appointment) => (
-                <tr key={appointment.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">
-                        {new Date(appointment.appointment_date).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {getPatientName(appointment.patient_id)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">
-                      {getDoctorName(appointment.doctor_id)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-600">
-                      {appointment.reason || 'Not specified'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[appointment.status]}`}>
-                      {appointment.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(appointment)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      <Edit2 className="w-4 h-4 inline" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(appointment.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="w-4 h-4 inline" />
-                    </button>
-                  </td>
+        {/* Desktop / tablet table */}
+        <div className="hidden md:block">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {appointments.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">No appointments found</td>
+                  </tr>
+                ) : (
+                  appointments.map((appointment) => (
+                    <tr key={appointment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                          <span className="text-sm text-gray-900">{new Date(appointment.appointment_date).toLocaleDateString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{getPatientName(appointment.patient_id)}</div></td>
+                      <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-600">{getDoctorName(appointment.doctor_id)}</div></td>
+                      <td className="px-6 py-4"><div className="text-sm text-gray-600">{appointment.reason || 'Not specified'}</div></td>
+                      <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[appointment.status]}`}>{appointment.status}</span></td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onClick={() => handleEdit(appointment)} className="text-blue-600 hover:text-blue-900 mr-4"><Edit2 className="w-4 h-4 inline" /></button>
+                        <button onClick={() => handleDelete(appointment.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-4 h-4 inline" /></button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile / small screens: card list */}
+        <div className="block md:hidden p-4">
+          {appointments.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">No appointments found</div>
+          ) : (
+            <div className="space-y-4">
+              {appointments.map((appointment) => (
+                <div key={appointment.id} className="bg-white rounded-lg shadow p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{getPatientName(appointment.patient_id)}</div>
+                      <div className="text-sm text-gray-600">{getDoctorName(appointment.doctor_id)}</div>
+                      <div className="text-sm text-gray-600">{new Date(appointment.appointment_date).toLocaleDateString()}</div>
+                      <div className="text-sm text-gray-600">{appointment.reason || 'Not specified'}</div>
+                      <div className="mt-2 inline-block px-2 py-1 text-xs font-medium rounded-full {statusColors[appointment.status]}">{appointment.status}</div>
+                    </div>
+                    <div className="flex flex-col space-y-2 ml-4">
+                      <button onClick={() => handleEdit(appointment)} className="text-blue-600 hover:text-blue-900"><Edit2 className="w-5 h-5" /></button>
+                      <button onClick={() => handleDelete(appointment.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-5 h-5" /></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {showModal && (

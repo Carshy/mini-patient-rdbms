@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, UserCog, Calendar, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, UserCog, Calendar, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function Layout({ children }) {
   const location = useLocation();
@@ -14,9 +14,21 @@ function Layout({ children }) {
 
   const isActive = (path) => location.pathname === path;
 
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Start collapsed on small screens for better UX
+  useEffect(() => {
+    const handleResize = () => {
+      setCollapsed(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-sm border-b border-gray-200 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -33,12 +45,35 @@ function Layout({ children }) {
             </div>
           </div>
         </div>
+
+        {/* Header area - no toggle here; toggle placed in sidebar top-right */}
       </header>
 
       <div className="flex">
-        
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
-          <nav className="mt-8 px-4 space-y-2">
+        {/* Sidebar */}
+        <aside
+          className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 w-64 transform transition-transform duration-300 ease-in-out z-40 ${
+            collapsed ? '-translate-x-full' : 'translate-x-0'
+          }`}
+        >
+          {/* Toggle inside sidebar: top-right */}
+          <div className="relative">
+            <div className="absolute right-3 top-3">
+              <button
+                aria-label={collapsed ? 'Open sidebar' : 'Close sidebar'}
+                onClick={() => setCollapsed((s) => !s)}
+                className="bg-white border border-gray-200 rounded-full p-1 shadow-sm hover:shadow-md focus:outline-none"
+              >
+                {collapsed ? (
+                  <ChevronRight className="w-5 h-5 text-gray-700" />
+                ) : (
+                  <ChevronLeft className="w-5 h-5 text-gray-700" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <nav className="mt-14 px-4 space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -59,10 +94,20 @@ function Layout({ children }) {
           </nav>
         </aside>
 
-        <main className="flex-1 p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+        {/* Floating handle visible when collapsed */}
+        {collapsed && (
+          <button
+            onClick={() => setCollapsed(false)}
+            aria-label="Open sidebar"
+            className="fixed top-24 left-0 z-50 -ml-3 bg-white border border-gray-200 rounded-r-md px-2 py-2 shadow-sm"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-700" />
+          </button>
+        )}
+
+        {/* Main content shifts when sidebar is visible */}
+        <main className={`flex-1 p-8 transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
+          <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, UserCog, Calendar, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { patientsAPI, doctorsAPI, appointmentsAPI } from '../services/api';
 
 function Dashboard() {
@@ -11,6 +12,9 @@ function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [recentAppointments, setRecentAppointments] = useState([]);
+  const [patientsList, setPatientsList] = useState([]);
+  const [doctorsList, setDoctorsList] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDashboardData();
@@ -28,6 +32,9 @@ function Dashboard() {
 
       const appointments = appointmentsRes.data.data;
       const scheduledCount = appointments.filter(apt => apt.status === 'scheduled').length;
+
+      setPatientsList(patientsRes.data.data);
+      setDoctorsList(doctorsRes.data.data);
 
       setStats({
         patients: patientsRes.data.data.length,
@@ -124,19 +131,25 @@ function Dashboard() {
                   key={appointment.id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        Patient ID: {appointment.patient_id} - Doctor ID: {appointment.doctor_id}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {appointment.reason || 'No reason specified'}
-                      </p>
-                    </div>
-                  </div>
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {(() => {
+                              const p = patientsList.find(px => px.id === appointment.patient_id);
+                              const d = doctorsList.find(dx => dx.id === appointment.doctor_id);
+                              const pName = p ? p.name : `Patient #${appointment.patient_id}`;
+                              const dName = d ? d.name : `Doctor #${appointment.doctor_id}`;
+                              return `${pName} — ${dName}`;
+                            })()}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {appointment.reason || 'No reason specified'}
+                          </p>
+                        </div>
+                      </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-gray-900">
                       {new Date(appointment.appointment_date).toLocaleDateString()}
@@ -166,7 +179,10 @@ function Dashboard() {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
           <h3 className="text-lg font-semibold mb-2">Quick Add Patient</h3>
           <p className="text-blue-100 mb-4">Register a new patient in the system</p>
-          <button className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium">
+          <button
+            onClick={() => navigate('/patients?modal=add')}
+            className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+          >
             Add Patient
           </button>
         </div>
@@ -174,7 +190,10 @@ function Dashboard() {
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
           <h3 className="text-lg font-semibold mb-2">Schedule Appointment</h3>
           <p className="text-green-100 mb-4">Book a new appointment quickly</p>
-          <button className="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors font-medium">
+          <button
+            onClick={() => navigate('/appointments?modal=add')}
+            className="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors font-medium"
+          >
             Schedule Now
           </button>
         </div>
@@ -182,7 +201,10 @@ function Dashboard() {
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
           <h3 className="text-lg font-semibold mb-2">View Reports</h3>
           <p className="text-purple-100 mb-4">Access patient and appointment reports</p>
-          <button className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-50 transition-colors font-medium">
+          <button
+            onClick={() => navigate('/appointments')}
+            className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-50 transition-colors font-medium"
+          >
             View Reports
           </button>
         </div>
