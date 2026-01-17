@@ -1,9 +1,3 @@
-// ============================================================================
-// APPOINTMENTS ROUTES - API endpoints for appointment management
-// ============================================================================
-// Handles all CRUD operations for appointments
-// ============================================================================
-
 const express = require('express');
 const router = express.Router();
 const { getParser } = require('../config/database');
@@ -15,9 +9,6 @@ const {
   validationErrorResponse
 } = require('../utils/response');
 
-// ============================================================================
-// GET /api/appointments - Get all appointments
-// ============================================================================
 router.get('/', async (req, res, next) => {
   try {
     const parser = getParser();
@@ -41,20 +32,14 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// GET /api/appointments/with-details - Get appointments with patient & doctor info
-// ============================================================================
 router.get('/with-details', async (req, res, next) => {
   try {
     const parser = getParser();
     
-    // First get appointments with patients
     const withPatients = parser.execute(`SELECT * FROM appointments INNER JOIN patients ON appointments.patient_id = patients.id`);
     
-    // Then get appointments with doctors
     const withDoctors = parser.execute(`SELECT * FROM appointments INNER JOIN doctors ON appointments.doctor_id = doctors.id`);
     
-    // Combine the data (simplified - in production, you'd do a proper 3-way join)
     const results = withPatients.results.map(apt => {
       const doctorData = withDoctors.results.find(
         d => d['appointments.id'] === apt['appointments.id']
@@ -68,9 +53,6 @@ router.get('/with-details', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// GET /api/appointments/:id - Get single appointment by ID
-// ============================================================================
 router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -88,9 +70,6 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// POST /api/appointments - Create new appointment
-// ============================================================================
 router.post('/', async (req, res, next) => {
   try {
     const {
@@ -101,7 +80,6 @@ router.post('/', async (req, res, next) => {
       status
     } = req.body;
     
-    // Validation
     if (!patient_id || !doctor_id || !appointment_date || !status) {
       return validationErrorResponse(
         res,
@@ -111,19 +89,16 @@ router.post('/', async (req, res, next) => {
 
     const parser = getParser();
 
-    // Check if patient exists
     const patientCheck = parser.execute(`SELECT * FROM patients WHERE id = ${patient_id}`);
     if (patientCheck.count === 0) {
       return errorResponse(res, 'Patient not found', 404);
     }
 
-    // Check if doctor exists
     const doctorCheck = parser.execute(`SELECT * FROM doctors WHERE id = ${doctor_id}`);
     if (doctorCheck.count === 0) {
       return errorResponse(res, 'Doctor not found', 404);
     }
 
-    // Validate status
     const validStatuses = ['scheduled', 'confirmed', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return validationErrorResponse(
@@ -142,9 +117,6 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// PUT /api/appointments/:id - Update appointment
-// ============================================================================
 router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -157,13 +129,11 @@ router.put('/:id', async (req, res, next) => {
     } = req.body;
     const parser = getParser();
     
-    // Check if appointment exists
     const checkResult = parser.execute(`SELECT * FROM appointments WHERE id = ${id}`);
     if (checkResult.count === 0) {
       return notFoundResponse(res, 'Appointment');
     }
 
-    // Build update fields
     const updates = [];
     
     if (patient_id !== undefined) {
@@ -202,7 +172,6 @@ router.put('/:id', async (req, res, next) => {
     const sql = `UPDATE appointments SET ${updates.join(', ')} WHERE id = ${id}`;
     parser.execute(sql);
     
-    // Get updated appointment
     const updatedResult = parser.execute(`SELECT * FROM appointments WHERE id = ${id}`);
     
     successResponse(res, updatedResult.results[0], 'Appointment updated successfully');
@@ -211,15 +180,11 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// DELETE /api/appointments/:id - Delete appointment
-// ============================================================================
 router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const parser = getParser();
-    
-    // Check if appointment exists
+   
     const checkResult = parser.execute(`SELECT * FROM appointments WHERE id = ${id}`);
     if (checkResult.count === 0) {
       return notFoundResponse(res, 'Appointment');

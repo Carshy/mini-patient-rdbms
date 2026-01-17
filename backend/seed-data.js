@@ -1,10 +1,3 @@
-// ============================================================================
-// SEED DATA SCRIPT - Populate database with sample data
-// ============================================================================
-// Run this after starting the server to add sample data
-// Usage: node seed-data.js
-// ============================================================================
-
 const API_BASE = 'http://localhost:3001/api';
 
 async function seedData() {

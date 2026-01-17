@@ -1,23 +1,12 @@
-// ============================================================================
-// EXPRESS.JS SERVER - Patient Management System API
-// ============================================================================
-// Main server file that sets up Express app and routes
-// ============================================================================
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { initializeDatabase } = require('./config/database');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
-// Import routes
 const patientsRoutes = require('./routes/patients');
 const doctorsRoutes = require('./routes/doctors');
 const appointmentsRoutes = require('./routes/appointments');
-
-// ============================================================================
-// INITIALIZE APP
-// ============================================================================
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,39 +16,22 @@ console.log('║  Patient Management System - Express.js API           ║');
 console.log('║  ⚠️  IN-MEMORY MODE - Data will be lost on restart    ║');
 console.log('╚════════════════════════════════════════════════════════╝\n');
 
-// ============================================================================
-// MIDDLEWARE
-// ============================================================================
-
-// CORS - Allow requests from React frontend
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 
-// Parse JSON bodies
 app.use(express.json());
 
-// Parse URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging (simple)
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// ============================================================================
-// INITIALIZE DATABASE
-// ============================================================================
-
 initializeDatabase();
 
-// ============================================================================
-// ROUTES
-// ============================================================================
-
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     success: true,
@@ -82,24 +54,13 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Register API routes
 app.use('/api/patients', patientsRoutes);
 app.use('/api/doctors', doctorsRoutes);
 app.use('/api/appointments', appointmentsRoutes);
 
-// ============================================================================
-// ERROR HANDLING
-// ============================================================================
-
-// 404 handler (must be after all routes)
 app.use(notFoundHandler);
 
-// Global error handler (must be last)
 app.use(errorHandler);
-
-// ============================================================================
-// START SERVER
-// ============================================================================
 
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running on port ${PORT}`);

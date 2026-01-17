@@ -1,9 +1,3 @@
-// ============================================================================
-// DOCTORS ROUTES - API endpoints for doctor management
-// ============================================================================
-// Handles all CRUD operations for doctors
-// ============================================================================
-
 const express = require('express');
 const router = express.Router();
 const { getParser } = require('../config/database');
@@ -15,9 +9,6 @@ const {
   validationErrorResponse
 } = require('../utils/response');
 
-// ============================================================================
-// GET /api/doctors - Get all doctors
-// ============================================================================
 router.get('/', async (req, res, next) => {
   try {
     const parser = getParser();
@@ -36,9 +27,6 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// GET /api/doctors/:id - Get single doctor by ID
-// ============================================================================
 router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -56,19 +44,14 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// POST /api/doctors - Create new doctor
-// ============================================================================
 router.post('/', async (req, res, next) => {
   try {
     const { name, specialty, email, phone, years_experience } = req.body;
     
-    // Validation
     if (!name || !specialty || !email) {
       return validationErrorResponse(res, 'Name, specialty, and email are required');
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return validationErrorResponse(res, 'Invalid email format');
@@ -86,22 +69,17 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// PUT /api/doctors/:id - Update doctor
-// ============================================================================
 router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, specialty, email, phone, years_experience } = req.body;
     const parser = getParser();
     
-    // Check if doctor exists
     const checkResult = parser.execute(`SELECT * FROM doctors WHERE id = ${id}`);
     if (checkResult.count === 0) {
       return notFoundResponse(res, 'Doctor');
     }
 
-    // Build update fields
     const updates = [];
     if (name !== undefined) updates.push(`name = '${name}'`);
     if (specialty !== undefined) updates.push(`specialty = '${specialty}'`);
@@ -122,7 +100,6 @@ router.put('/:id', async (req, res, next) => {
     const sql = `UPDATE doctors SET ${updates.join(', ')} WHERE id = ${id}`;
     parser.execute(sql);
     
-    // Get updated doctor
     const updatedResult = parser.execute(`SELECT * FROM doctors WHERE id = ${id}`);
     
     successResponse(res, updatedResult.results[0], 'Doctor updated successfully');
@@ -131,21 +108,16 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// DELETE /api/doctors/:id - Delete doctor
-// ============================================================================
 router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const parser = getParser();
     
-    // Check if doctor exists
     const checkResult = parser.execute(`SELECT * FROM doctors WHERE id = ${id}`);
     if (checkResult.count === 0) {
       return notFoundResponse(res, 'Doctor');
     }
 
-    // Check if doctor has appointments
     const appointmentsResult = parser.execute(`SELECT * FROM appointments WHERE doctor_id = ${id}`);
     if (appointmentsResult.count > 0) {
       return errorResponse(
@@ -163,21 +135,16 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
-// ============================================================================
-// GET /api/doctors/:id/appointments - Get doctor's appointments
-// ============================================================================
 router.get('/:id/appointments', async (req, res, next) => {
   try {
     const { id } = req.params;
     const parser = getParser();
-    
-    // Check if doctor exists
+   
     const checkResult = parser.execute(`SELECT * FROM doctors WHERE id = ${id}`);
     if (checkResult.count === 0) {
       return notFoundResponse(res, 'Doctor');
     }
 
-    // Get appointments with patient details
     const result = parser.execute(`SELECT * FROM appointments INNER JOIN patients ON appointments.patient_id = patients.id WHERE appointments.doctor_id = ${id}`);
     
     successResponse(res, result.results, `Retrieved ${result.count} appointment(s)`);
