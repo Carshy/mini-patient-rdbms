@@ -15,7 +15,7 @@
     "patient-management",
     "interview"
   ],
-  "author": "Your Name",
+  "author": "Collins Musoko",
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
